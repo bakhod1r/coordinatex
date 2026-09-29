@@ -1,0 +1,206 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "coordinatex components",
+    "version": "0.3.0",
+    "description": "Reusable OpenAPI components for APIs built with github.com/bakhod1r/coordinatex. Reference them with $ref: 'components.json#/components/schemas/Coordinate'."
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Latitude": {
+        "type": "number",
+        "format": "double",
+        "minimum": -90,
+        "maximum": 90,
+        "description": "Latitude in decimal degrees (WGS84)."
+      },
+      "Longitude": {
+        "type": "number",
+        "format": "double",
+        "minimum": -180,
+        "maximum": 180,
+        "description": "Longitude in decimal degrees (WGS84)."
+      },
+      "Coordinate": {
+        "type": "object",
+        "required": ["lat", "lng"],
+        "additionalProperties": false,
+        "properties": {
+          "lat": { "$ref": "#/components/schemas/Latitude" },
+          "lng": { "$ref": "#/components/schemas/Longitude" }
+        },
+        "example": { "lat": 41.3111, "lng": 69.2797 }
+      },
+      "Bounds": {
+        "type": "object",
+        "required": ["minLat", "minLng", "maxLat", "maxLng"],
+        "additionalProperties": false,
+        "description": "Latitude/longitude box. minLng > maxLng means the box crosses the antimeridian.",
+        "properties": {
+          "minLat": { "$ref": "#/components/schemas/Latitude" },
+          "minLng": { "$ref": "#/components/schemas/Longitude" },
+          "maxLat": { "$ref": "#/components/schemas/Latitude" },
+          "maxLng": { "$ref": "#/components/schemas/Longitude" }
+        },
+        "example": { "minLat": 41.2661, "minLng": 69.2198, "maxLat": 41.3561, "maxLng": 69.3396 }
+      },
+      "GeoJSONPosition": {
+        "type": "array",
+        "description": "[longitude, latitude] (RFC 7946 order).",
+        "minItems": 2,
+        "maxItems": 3,
+        "prefixItems": [
+          { "$ref": "#/components/schemas/Longitude" },
+          { "$ref": "#/components/schemas/Latitude" }
+        ],
+        "items": { "type": "number" }
+      },
+      "GeoJSONPoint": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "const": "Point" },
+          "coordinates": { "$ref": "#/components/schemas/GeoJSONPosition" }
+        },
+        "example": { "type": "Point", "coordinates": [69.2797, 41.3111] }
+      },
+      "GeoJSONMultiPoint": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "const": "MultiPoint" },
+          "coordinates": { "type": "array", "items": { "$ref": "#/components/schemas/GeoJSONPosition" } }
+        }
+      },
+      "GeoJSONLineString": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "const": "LineString" },
+          "coordinates": { "type": "array", "minItems": 2, "items": { "$ref": "#/components/schemas/GeoJSONPosition" } }
+        }
+      },
+      "GeoJSONMultiLineString": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "const": "MultiLineString" },
+          "coordinates": {
+            "type": "array",
+            "items": { "type": "array", "minItems": 2, "items": { "$ref": "#/components/schemas/GeoJSONPosition" } }
+          }
+        }
+      },
+      "GeoJSONLinearRing": {
+        "type": "array",
+        "description": "Closed ring: at least 4 positions, first equals last.",
+        "minItems": 4,
+        "items": { "$ref": "#/components/schemas/GeoJSONPosition" }
+      },
+      "GeoJSONPolygon": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "description": "First ring is the exterior (counter-clockwise), the rest are holes (clockwise).",
+        "properties": {
+          "type": { "const": "Polygon" },
+          "coordinates": { "type": "array", "minItems": 1, "items": { "$ref": "#/components/schemas/GeoJSONLinearRing" } }
+        }
+      },
+      "GeoJSONMultiPolygon": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "const": "MultiPolygon" },
+          "coordinates": {
+            "type": "array",
+            "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/components/schemas/GeoJSONLinearRing" } }
+          }
+        }
+      },
+      "GeoJSONGeometryCollection": {
+        "type": "object",
+        "required": ["type", "geometries"],
+        "properties": {
+          "type": { "const": "GeometryCollection" },
+          "geometries": { "type": "array", "items": { "$ref": "#/components/schemas/GeoJSONGeometry" } }
+        }
+      },
+      "GeoJSONGeometry": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/GeoJSONPoint" },
+          { "$ref": "#/components/schemas/GeoJSONMultiPoint" },
+          { "$ref": "#/components/schemas/GeoJSONLineString" },
+          { "$ref": "#/components/schemas/GeoJSONMultiLineString" },
+          { "$ref": "#/components/schemas/GeoJSONPolygon" },
+          { "$ref": "#/components/schemas/GeoJSONMultiPolygon" },
+          { "$ref": "#/components/schemas/GeoJSONGeometryCollection" }
+        ],
+        "discriminator": { "propertyName": "type" }
+      },
+      "GeoJSONFeature": {
+        "type": "object",
+        "required": ["type", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+          "geometry": { "oneOf": [{ "$ref": "#/components/schemas/GeoJSONGeometry" }, { "type": "null" }] },
+          "properties": { "type": ["object", "null"], "additionalProperties": true }
+        }
+      },
+      "GeoJSONFeatureCollection": {
+        "type": "object",
+        "required": ["type", "features"],
+        "properties": {
+          "type": { "const": "FeatureCollection" },
+          "features": { "type": "array", "items": { "$ref": "#/components/schemas/GeoJSONFeature" } }
+        },
+        "example": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "id": "shop-1",
+              "geometry": { "type": "Point", "coordinates": [69.2797, 41.3111] },
+              "properties": { "name": "Chorsu" }
+            }
+          ]
+        }
+      }
+    },
+    "parameters": {
+      "Latitude": {
+        "name": "lat",
+        "in": "query",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Latitude" },
+        "example": 41.3111
+      },
+      "Longitude": {
+        "name": "lng",
+        "in": "query",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Longitude" },
+        "example": 69.2797
+      },
+      "Radius": {
+        "name": "radius",
+        "in": "query",
+        "required": true,
+        "description": "Search radius in meters.",
+        "schema": { "type": "number", "exclusiveMinimum": 0 },
+        "example": 5000
+      },
+      "BBox": {
+        "name": "bbox",
+        "in": "query",
+        "required": true,
+        "description": "minLng,minLat,maxLng,maxLat (GeoJSON/OGC order).",
+        "style": "form",
+        "explode": false,
+        "schema": { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?(,-?\\d+(\\.\\d+)?){3}$" },
+        "example": "69.21,41.26,69.34,41.36"
+      }
+    }
+  }
+}

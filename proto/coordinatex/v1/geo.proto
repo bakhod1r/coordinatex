@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package coordinatex.v1;
+
+option go_package = "github.com/bakhod1r/coordinatex/proto/coordinatexpb";
+
+// LatLng is a WGS84 point in decimal degrees.
+message LatLng {
+  double lat = 1;
+  double lng = 2;
+}
+
+// Bounds is a latitude/longitude box. min_lng > max_lng means it crosses the antimeridian.
+message Bounds {
+  double min_lat = 1;
+  double min_lng = 2;
+  double max_lat = 3;
+  double max_lng = 4;
+}
+
+// Circle is every point within radius_meters of center.
+message Circle {
+  LatLng center = 1;
+  double radius_meters = 2;
+}
+
+// Polyline is an ordered sequence of points (route, track).
+message Polyline {
+  repeated LatLng points = 1;
+}
+
+// Ring is a polygon ring; closing the ring is optional.
+message Ring {
+  repeated LatLng points = 1;
+}
+
+// Polygon is an exterior ring with optional holes.
+message Polygon {
+  Ring outer = 1;
+  repeated Ring holes = 2;
+}

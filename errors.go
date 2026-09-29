@@ -28,3 +28,6 @@ var ErrInvalidPolygon = errors.New("coordinatex: polygon needs at least 3 vertic
 
 // ErrOutOfRange is returned when a coordinate is outside a projection's domain.
 var ErrOutOfRange = errors.New("coordinatex: outside projection range")
+
+// ErrInvalidIdentifier is returned when a SQL column name is not a plain identifier.
+var ErrInvalidIdentifier = errors.New("coordinatex: invalid SQL identifier")

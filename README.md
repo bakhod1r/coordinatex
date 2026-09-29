@@ -45,7 +45,8 @@ if coordinatex.WithinRadius(user, shop, 5*coordinatex.Kilometer) { /* ... */ }
 | Grids / projections | `ToUTM`/`ParseUTM`, `ToMGRS`/`ParseMGRS`, `EncodePlusCode`/`DecodePlusCode`, `ToWebMercator`, `TileAt`, `Tile.Bounds/Quadkey/Parent/Children`, `TilesCovering` |
 | Trips | `Track.Stops`, `Track.Trips` |
 | Files | `WriteGPX`/`ReadGPX`, `WriteKML` |
-| HTTP | `CoordinateFromQuery`, `RadiusFromQuery`, `BoundsFromQuery` |
+| HTTP | `CoordinateFromQuery`, `RadiusFromQuery`, `BoundsFromQuery`, `OpenAPIComponents` (OpenAPI 3.1 schemas and parameters) |
+| SQL / PostGIS | `Postgres`/`MySQL` dialects: `BoundsFilter`, `RadiusFilter`, `DWithin`, `DistanceOrder`, `Envelope`, `GeohashPrefixFilter`, `SQLFilter.And` |
 
 ## Two-stage radius search
 
@@ -57,6 +58,33 @@ hits := coordinatex.WithinRadiusFilter(center, rows, r) // 2. exact check
 ```
 
 Or with geohash prefixes: `coordinatex.GeohashesAround(center, r)`.
+
+## SQL and PostGIS
+
+Filters are parameterized; values are never interpolated and column names must be plain identifiers.
+
+```go
+near, _ := coordinatex.Postgres.DWithin("location", center, 5*coordinatex.Kilometer, 0)
+order, _ := coordinatex.Postgres.DistanceOrder("location", center, len(near.Args))
+rows, err := db.Query("SELECT id FROM shops WHERE "+near.Clause+" ORDER BY "+order.Clause+" LIMIT 20",
+    append(near.Args, order.Args...)...)
+```
+
+Without PostGIS: `coordinatex.MySQL.RadiusFilter("lat", "lng", center, r, 0)` then `WithinRadius` in Go.
+
+## Protobuf / gRPC
+
+Separate module so the core stays dependency-free:
+
+```sh
+go get github.com/bakhod1r/coordinatex/proto
+```
+
+Messages `coordinatex.v1.LatLng`, `Bounds`, `Circle`, `Polyline`, `Polygon` ([geo.proto](proto/coordinatex/v1/geo.proto)) with `FromX`/`ToX` converters that validate input.
+
+## OpenAPI
+
+`coordinatex.OpenAPIComponents` (also [openapi/components.json](openapi/components.json)) has `Coordinate`, `Bounds`, every GeoJSON geometry, `Feature`, `FeatureCollection` and `lat`/`lng`/`radius`/`bbox` query parameters.
 
 ## Conventions
 
