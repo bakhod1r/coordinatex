@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>coordinatex — geospatial primitives for Go</title>
+<meta name="description" content="Strongly-typed geospatial primitives for Go backend services: distance, bearing, bounds, geohash, UTM/MGRS, Plus Codes, tiles, polygons, geofences, GPS tracks, GeoJSON, PostGIS. Zero dependencies.">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--muted:#6b6a64;--line:#e4e1d8;--card:#fff;--accent:#0f766e;--code:#f3f1ea}
+@media (prefers-color-scheme:dark){:root{--bg:#141412;--fg:#ecebe6;--muted:#9c9a92;--line:#2c2b27;--card:#1b1b19;--accent:#2dd4bf;--code:#22221f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:48px 16px 80px}
+h1{font-size:40px;line-height:1.1;margin:0 0 8px;letter-spacing:-.02em}
+h2{font-size:22px;margin:56px 0 12px}
+p.lead{font-size:19px;color:var(--muted);margin:0 0 24px;max-width:640px}
+a{color:var(--accent)}
+code,pre{font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-block;padding:8px 14px;border-radius:6px;border:1px solid var(--line);text-decoration:none;color:var(--fg);background:var(--card)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.demo{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.demo label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.demo input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:14px ui-monospace,Menlo,monospace}
+.demo .inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:560px){.demo .inputs{grid-template-columns:1fr}}
+.out{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.out div{padding:8px 10px;background:var(--code);border-radius:6px}
+.out span{display:block;font-size:12px;color:var(--muted)}
+.out b{font:600 15px ui-monospace,Menlo,monospace}
+.err{color:#dc2626;font-size:14px;min-height:20px;margin-top:8px}
+footer{margin-top:64px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <h1>coordinatex</h1>
+  <p class="lead">Small, strongly-typed geospatial primitives for Go backend services. Standard library only.</p>
+  <div class="row">
+    <a class="btn primary" href="https://pkg.go.dev/github.com/bakhod1r/coordinatex">API reference</a>
+    <a class="btn" href="https://github.com/bakhod1r/coordinatex">GitHub</a>
+  </div>
+  <p></p>
+  <pre>go get github.com/bakhod1r/coordinatex</pre>
+
+  <h2>Quick start</h2>
+<pre>tashkent := coordinatex.MustNew(41.2995, 69.2401)
+samarkand := coordinatex.MustNew(39.6542, 66.9597)
+
+d := coordinatex.DistanceBetween(tashkent, samarkand)
+fmt.Println(d, coordinatex.Direction(tashkent, samarkand)) // 266.xx km SW
+
+if coordinatex.WithinRadius(user, shop, 5*coordinatex.Kilometer) {
+    // shop is within 5 km
+}</pre>
+
+  <h2>Try it</h2>
+  <div class="demo">
+    <div class="inputs">
+      <div><label for="a">From: decimal or DMS</label><input id="a" value="41.2995, 69.2401"></div>
+      <div><label for="b">To</label><input id="b" value="39.6542, 66.9597"></div>
+    </div>
+    <div class="out" id="out"></div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <h2>What's inside</h2>
+  <div class="grid">
+    <div class="card"><h3>Distance</h3><p>Haversine, equirectangular, Vincenty on WGS84 (inverse and direct), distance matrix.</p></div>
+    <div class="card"><h3>Direction</h3><p>Initial/final bearing, 4/8/16-point compass, destination, midpoint, interpolation.</p></div>
+    <div class="card"><h3>Bounds and proximity</h3><p>Handles antimeridian crossings. Radius search, nearest-N, grid spatial index, DBSCAN.</p></div>
+    <div class="card"><h3>Grids</h3><p>Geohash, UTM, MGRS, Plus Codes, Web Mercator XYZ tiles and quadkeys.</p></div>
+    <div class="card"><h3>Geometry</h3><p>Polygons with holes, spherical containment, convex hull, polylines, simplification, circles.</p></div>
+    <div class="card"><h3>Geofencing</h3><p>Circle, polygon, rectangle and corridor fences. Enter/exit detection, distance to fence.</p></div>
+    <div class="card"><h3>GPS tracks</h3><p>Speed, spike filter, Kalman smoothing, stop and trip detection, GPX/KML.</p></div>
+    <div class="card"><h3>Serialization</h3><p>JSON, text, DMS/DM, GeoJSON features, Google encoded polylines, WKT/EWKB, sql.Scanner.</p></div>
+  </div>
+
+  <h2>Two-stage radius search</h2>
+<pre>b := coordinatex.BoundsAround(center, r)                 // 1. index-friendly pre-filter
+// WHERE lat BETWEEN b.MinLat AND b.MaxLat AND lng BETWEEN b.MinLng AND b.MaxLng
+hits := coordinatex.WithinRadiusFilter(center, rows, r)  // 2. exact check</pre>
+
+  <footer>MIT licensed · <a href="https://github.com/bakhod1r/coordinatex/releases">Releases</a></footer>
+</main>
+<script>
+// Browser port of DistanceBetween, Bearing, CompassFromAngle and Midpoint (spherical, R = 6371008.8 m).
+const R = 6371008.8, rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const compass = ["N","NE","E","SE","S","SW","W","NW"];
+function parse(s){
+  s = s.trim().toUpperCase().replace(/[″”]/g,'"').replace(/[′’]/g,"'");
+  const dec = s.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
+  if (dec) return check(+dec[1], +dec[2]);
+  const re = /(\d+(?:\.\d+)?)\s*°?\s*(?:(\d+(?:\.\d+)?)\s*')?\s*(?:(\d+(?:\.\d+)?)\s*")?\s*([NSEW])/g;
+  const parts = [...s.matchAll(re)];
+  if (parts.length !== 2) throw new Error("Use decimal (41.3, 69.2) or DMS (41°18'40\"N 69°16'47\"E).");
+  const v = p => (+p[1] + (+p[2]||0)/60 + (+p[3]||0)/3600) * ("SW".includes(p[4]) ? -1 : 1);
+  return check(v(parts[0]), v(parts[1]));
+}
+function check(lat, lng){
+  if (!(lat >= -90 && lat <= 90)) throw new Error("Latitude must be between -90 and 90.");
+  if (!(lng >= -180 && lng <= 180)) throw new Error("Longitude must be between -180 and 180.");
+  return {lat, lng};
+}
+function run(){
+  const out = document.getElementById("out"), err = document.getElementById("err");
+  try {
+    const a = parse(document.getElementById("a").value), b = parse(document.getElementById("b").value);
+    const φ1 = rad(a.lat), φ2 = rad(b.lat), Δφ = φ2 - φ1, Δλ = rad(b.lng - a.lng);
+    const h = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    const d = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h)) * R;
+    const brg = (deg(Math.atan2(Math.sin(Δλ)*Math.cos(φ2), Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ))) + 360) % 360;
+    const bx = Math.cos(φ2)*Math.cos(Δλ), by = Math.cos(φ2)*Math.sin(Δλ);
+    const mφ = Math.atan2(Math.sin(φ1)+Math.sin(φ2), Math.hypot(Math.cos(φ1)+bx, by));
+    const mλ = rad(a.lng) + Math.atan2(by, Math.cos(φ1)+bx);
+    const cells = [
+      ["Distance", d >= 1000 ? (d/1000).toFixed(2) + " km" : d.toFixed(2) + " m"],
+      ["Miles", (d/1609.344).toFixed(2)],
+      ["Bearing", brg.toFixed(1) + "°"],
+      ["Direction", compass[Math.floor((brg + 22.5) / 45) % 8]],
+      ["Midpoint", deg(mφ).toFixed(4) + ", " + (((deg(mλ) + 540) % 360) - 180).toFixed(4)],
+    ];
+    out.innerHTML = "";
+    for (const [k, v] of cells) {
+      const div = document.createElement("div");
+      div.innerHTML = "<span></span><b></b>";
+      div.firstChild.textContent = k; div.lastChild.textContent = v;
+      out.appendChild(div);
+    }
+    err.textContent = "";
+  } catch (e) { out.innerHTML = ""; err.textContent = e.message; }
+}
+document.getElementById("a").addEventListener("input", run);
+document.getElementById("b").addEventListener("input", run);
+run();
+</script>
+</body>
+</html>

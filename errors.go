@@ -25,3 +25,6 @@ var (
 
 // ErrInvalidPolygon is returned when a polygon has fewer than 3 distinct vertices.
 var ErrInvalidPolygon = errors.New("coordinatex: polygon needs at least 3 vertices")
+
+// ErrOutOfRange is returned when a coordinate is outside a projection's domain.
+var ErrOutOfRange = errors.New("coordinatex: outside projection range")

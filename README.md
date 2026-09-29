@@ -1,5 +1,9 @@
 # coordinatex
 
+[![CI](https://github.com/bakhod1r/coordinatex/actions/workflows/ci.yml/badge.svg)](https://github.com/bakhod1r/coordinatex/actions/workflows/ci.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/bakhod1r/coordinatex.svg)](https://pkg.go.dev/github.com/bakhod1r/coordinatex)
+
+Docs and live demo: https://bakhod1r.github.io/coordinatex/
+
 Small, strongly-typed geospatial primitives for Go backend services. Zero dependencies (stdlib only).
 
 ```sh
@@ -36,7 +40,11 @@ if coordinatex.WithinRadius(user, shop, 5*coordinatex.Kilometer) { /* ... */ }
 | GPS | `TrackPoint`, `Track`: `Distance`, `Duration`, `AverageSpeed`, `MaxSpeed`, `Speeds`, `FilterSpeed`, `IsStationary`, `Smooth` (Kalman) |
 | Formats | `Parse` (decimal, DMS, DM, hemisphere prefix/suffix), `FormatDMS`, `FormatDM`, `FormatDecimal` |
 | Serialization | JSON `{"lat","lng"}` (validated), `MarshalText`/`UnmarshalText`, GeoJSON (all geometry types, `Feature`, `FeatureCollection`, `MarshalGeometry`/`ParseGeometry`), WKT/EWKT, WKB/EWKB (hex + binary), `sql.Scanner`/`driver.Valuer` |
-| Index | `GridIndex[T]`: `Insert`, `Remove`, `WithinRadius`, `Nearest` |
+| Index / clustering | `GridIndex[T]`: `Insert`, `Remove`, `WithinRadius`, `Nearest`; `DBSCAN` |
+| Spherical geometry | `Polygon.ContainsSpherical` (antimeridian/poles), `Polygon.DistanceTo`, `SphericalPolygonFence`, `CorridorFence`, `Circle.Polygon`, `ConvexHull` |
+| Grids / projections | `ToUTM`/`ParseUTM`, `ToMGRS`/`ParseMGRS`, `EncodePlusCode`/`DecodePlusCode`, `ToWebMercator`, `TileAt`, `Tile.Bounds/Quadkey/Parent/Children`, `TilesCovering` |
+| Trips | `Track.Stops`, `Track.Trips` |
+| Files | `WriteGPX`/`ReadGPX`, `WriteKML` |
 | HTTP | `CoordinateFromQuery`, `RadiusFromQuery`, `BoundsFromQuery` |
 
 ## Two-stage radius search
@@ -60,5 +68,6 @@ Or with geohash prefixes: `coordinatex.GeohashesAround(center, r)`.
 ## Roadmap
 
 - GeoJSON bbox/foreign members, 3D positions (Z/M)
-- Spherical (not planar) point-in-polygon and polygon relations
+- Spherical polygon–polygon relations
+- Uber H3 (planned as a separate package)
 - R-tree index for non-point geometries
