@@ -91,3 +91,17 @@ func TestPolylinePolygon(t *testing.T) {
 }
 
 func ll(lat, lng float64) coordinatex.Coordinate { return coordinatex.Coordinate{Lat: lat, Lng: lng} }
+
+func TestErrorBranches(t *testing.T) {
+	if _, err := cxp.ToCircle(nil); !errors.Is(err, cxp.ErrNilMessage) {
+		t.Fatal(err)
+	}
+	bad := &coordinatexpb.LatLng{Lat: 91}
+	if _, err := cxp.ToPolygon(&coordinatexpb.Polygon{Outer: &coordinatexpb.Ring{Points: []*coordinatexpb.LatLng{bad}}}); !errors.Is(err, coordinatex.ErrInvalidLatitude) {
+		t.Fatal("outer", err)
+	}
+	outer := cxp.FromPolygon(coordinatex.PolygonWithHoles{Outer: coordinatex.Polygon{ll(0, 0), ll(0, 1), ll(1, 1)}}).GetOuter()
+	if _, err := cxp.ToPolygon(&coordinatexpb.Polygon{Outer: outer, Holes: []*coordinatexpb.Ring{{Points: []*coordinatexpb.LatLng{bad}}}}); !errors.Is(err, coordinatex.ErrInvalidLatitude) {
+		t.Fatal("hole", err)
+	}
+}

@@ -70,7 +70,12 @@ func DistanceVincenty(a, b Coordinate) (Distance, error) {
 
 // DestinationVincenty solves the direct geodesic problem on the WGS84 ellipsoid:
 // the point reached from start after distance d along the initial bearing.
+// The direct iteration always converges; an error is returned only for an
+// invalid start.
 func DestinationVincenty(start Coordinate, d Distance, bearing Angle) (Coordinate, error) {
+	if err := start.Validate(); err != nil {
+		return Coordinate{}, err
+	}
 	if d == 0 {
 		return start, nil
 	}
@@ -88,7 +93,6 @@ func DestinationVincenty(start Coordinate, d Distance, bearing Angle) (Coordinat
 
 	σ := float64(d) / (wgs84B * A)
 	var sinσ, cosσ, cos2σm float64
-	converged := false
 	for i := 0; i < 200; i++ {
 		cos2σm = math.Cos(2*σ1 + σ)
 		sinσ, cosσ = math.Sincos(σ)
@@ -96,12 +100,8 @@ func DestinationVincenty(start Coordinate, d Distance, bearing Angle) (Coordinat
 		prev := σ
 		σ = float64(d)/(wgs84B*A) + Δσ
 		if math.Abs(σ-prev) < 1e-12 {
-			converged = true
 			break
 		}
-	}
-	if !converged {
-		return Coordinate{}, fmt.Errorf("%w: vincenty direct", ErrNoConvergence)
 	}
 	cos2σm = math.Cos(2*σ1 + σ)
 	sinσ, cosσ = math.Sincos(σ)

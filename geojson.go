@@ -120,7 +120,18 @@ func (m MultiPolygon) geoJSONCoordinates() (any, error) {
 	return out, nil
 }
 
-func (g GeometryCollection) geoJSONCoordinates() (any, error) { return nil, nil }
+// geoJSONCoordinates returns the encoded member geometries.
+func (g GeometryCollection) geoJSONCoordinates() (any, error) {
+	out := make([]json.RawMessage, len(g))
+	for i, sub := range g {
+		b, err := MarshalGeometry(sub)
+		if err != nil {
+			return nil, err
+		}
+		out[i] = b
+	}
+	return out, nil
+}
 
 type rawGeometry struct {
 	Type        string            `json:"type"`
@@ -133,26 +144,18 @@ func MarshalGeometry(g Geometry) ([]byte, error) {
 	if g == nil {
 		return nil, fmt.Errorf("%w: nil geometry", ErrParse)
 	}
-	if gc, ok := g.(GeometryCollection); ok {
-		raw := rawGeometry{Type: gc.GeoJSONType(), Geometries: make([]json.RawMessage, len(gc))}
-		for i, sub := range gc {
-			b, err := MarshalGeometry(sub)
-			if err != nil {
-				return nil, err
-			}
-			raw.Geometries[i] = b
-		}
-		return json.Marshal(raw)
-	}
 	coords, err := g.geoJSONCoordinates()
 	if err != nil {
 		return nil, err
 	}
-	b, err := json.Marshal(coords)
-	if err != nil {
-		return nil, err
+	raw := rawGeometry{Type: g.GeoJSONType()}
+	if members, ok := coords.([]json.RawMessage); ok {
+		raw.Geometries = members
+	} else {
+		// Positions are validated finite numbers, so encoding cannot fail.
+		raw.Coordinates, _ = json.Marshal(coords)
 	}
-	return json.Marshal(rawGeometry{Type: g.GeoJSONType(), Coordinates: b})
+	return json.Marshal(raw)
 }
 
 // ParseGeometry decodes any GeoJSON geometry. Polygons decode as PolygonWithHoles.

@@ -4,7 +4,7 @@
 
 Docs and live demo: https://bakhod1r.github.io/coordinatex/
 
-Small, strongly-typed geospatial primitives for Go backend services. Zero dependencies (stdlib only).
+Small, strongly-typed geospatial primitives for Go backend services. Zero dependencies (stdlib only). 100% test coverage, enforced in CI.
 
 ```sh
 go get github.com/bakhod1r/coordinatex
